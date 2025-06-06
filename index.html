@@ -27,7 +27,7 @@
       }
 
       .card {
-        max-width: 480px;
+        max-width: 520px;
         width: 100%;
         background: #1c1c1e;
         padding: 2rem;
@@ -59,7 +59,8 @@
         text-align: left;
       }
 
-      input[type="number"] {
+      input[type="number"],
+      select {
         width: 100%;
         box-sizing: border-box;
         padding: 0.45rem 0.5rem;
@@ -68,6 +69,15 @@
         border-radius: 6px;
         background: var(--accent);
         color: var(--text);
+      }
+
+      /* salary cell flex layout */
+      .flex-row {
+        display: flex;
+        gap: 6px;
+      }
+      .flex-row select {
+        max-width: 90px;
       }
 
       .btn {
@@ -116,9 +126,17 @@
             <th>Амортизація, грн/км</th>
             <td><input type="number" id="priceAmort" value="4" /></td>
           </tr>
-           <tr>
-            <th>Зарплата, грн/км</th>
-            <td><input type="number" id="priceZarpl" value="4" /></td>
+          <tr>
+            <th>Зарплата водія</th>
+            <td>
+              <div class="flex-row">
+                <input type="number" id="salaryVal" value="4" />
+                <select id="salaryUnit">
+                  <option value="perKm">грн/км</option>
+                  <option value="percent">%</option>
+                </select>
+              </div>
+            </td>
           </tr>
           <tr>
             <th>Вага, т</th>
@@ -137,35 +155,45 @@
     </div>
 
     <script>
-      const AMORT_RATE = 4;   // грн / км
-      const SALARY_RATE = 4;  // грн / км
-
       function format(n) {
         return (+n).toLocaleString("uk-UA", { maximumFractionDigits: 0 });
       }
 
       function calc() {
-        const km = +document.getElementById("km").value;
-        const norm = +document.getElementById("norm").value;
-        const priceFuel = +document.getElementById("priceFuel").value;
-        const weight = +document.getElementById("weight").value;
-        const priceTon = +document.getElementById("priceTon").value;
+        const km         = +document.getElementById("km").value;
+        const norm       = +document.getElementById("norm").value;
+        const priceFuel  = +document.getElementById("priceFuel").value;
         const priceAmort = +document.getElementById("priceAmort").value;
-        const priceZarpl = +document.getElementById("priceZarpl").value;
+        const salaryVal  = +document.getElementById("salaryVal").value;
+        const salaryUnit = document.getElementById("salaryUnit").value;
+        const weight     = +document.getElementById("weight").value;
+        const priceTon   = +document.getElementById("priceTon").value;
 
-        if ([km, norm, priceFuel, weight, priceTon].some(isNaN) || km <= 0) {
+        if ([km, norm, priceFuel, priceAmort, salaryVal, weight, priceTon].some(v => isNaN(v) || v < 0) || km === 0) {
           alert("Будь ласка, заповніть усі поля коректно.");
           return;
         }
 
-        const liters = (km * norm) / 100;               // Витрачено пального
-        const fuelCost = liters * priceFuel;            // Вартість пального
-        const amort = priceAmort * km;                  // Амортизація
-        const salary = priceZarpl * km;                // Зарплата
-        const expenses = fuelCost + amort + salary;     // Витрати всього
+        // Фрахт потрібно раніше, бо зарплата може бути % від нього
+        const freight = weight * priceTon;              // Фрахт, грн
 
-        const freight = weight * priceTon;              // Фрахт
-        const margin = freight - expenses;              // Маржа
+        // Витрати на паливо
+        const liters   = (km * norm) / 100;
+        const fuelCost = liters * priceFuel;
+
+        // Амортизація за км
+        const amort = priceAmort * km;
+
+        // Зарплата: або грн/км, або % від фрахту
+        let salary = 0;
+        if (salaryUnit === "perKm") {
+          salary = salaryVal * km;          // грн/км
+        } else {
+          salary = freight * (salaryVal / 100); // % від фрахту
+        }
+
+        const expenses = fuelCost + amort + salary;     // Загальні витрати
+        const margin   = freight - expenses;            // Маржа
 
         const el = document.getElementById("output");
         el.style.display = "block";
