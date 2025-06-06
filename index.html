@@ -113,6 +113,14 @@
             <td><input type="number" id="priceFuel" value="45" /></td>
           </tr>
           <tr>
+            <th>Амортизація, грн/км</th>
+            <td><input type="number" id="priceAmort" value="4" /></td>
+          </tr>
+           <tr>
+            <th>Зарплата, грн/км</th>
+            <td><input type="number" id="priceZarpl" value="4" /></td>
+          </tr>
+          <tr>
             <th>Вага, т</th>
             <td><input type="number" id="weight" value="26" /></td>
           </tr>
@@ -142,6 +150,8 @@
         const priceFuel = +document.getElementById("priceFuel").value;
         const weight = +document.getElementById("weight").value;
         const priceTon = +document.getElementById("priceTon").value;
+        const priceAmort = +document.getElementById("priceAmort").value;
+        const priceZarpl = +document.getElementById("priceZarpl").value;
 
         if ([km, norm, priceFuel, weight, priceTon].some(isNaN) || km <= 0) {
           alert("Будь ласка, заповніть усі поля коректно.");
@@ -150,8 +160,8 @@
 
         const liters = (km * norm) / 100;               // Витрачено пального
         const fuelCost = liters * priceFuel;            // Вартість пального
-        const amort = AMORT_RATE * km;                  // Амортизація
-        const salary = SALARY_RATE * km;                // Зарплата
+        const amort = priceAmort * km;                  // Амортизація
+        const salary = priceZarpl * km;                // Зарплата
         const expenses = fuelCost + amort + salary;     // Витрати всього
 
         const freight = weight * priceTon;              // Фрахт
